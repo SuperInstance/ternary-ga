@@ -95,6 +95,18 @@ The GA operates in generational cycles:
 3. **Combinatorial scheduling** — Encode task assignments (early/on-time/late) and optimize via GA
 4. **Circuit design** — Search ternary logic gate configurations for desired truth tables
 
+## Known Limitations
+
+- **Xorshift32 RNG is not cryptographically secure**: The internal RNG uses xorshift32, which has a short period (2³² − 1) and fails modern statistical test suites (TestU01, PractRand). Population diversity degrades for runs exceeding ~100K generations. For research-quality GA work, provide your own RNG via the public API.
+
+- **Roulette selection fails with negative fitness**: `SelectionMethod::Roulette` assumes non-negative fitness values. If the fitness function returns negative values, the proportion computation `fitness / total_fitness` produces nonsensical selection probabilities, potentially panicking on division by a zero or negative total.
+
+- **Elitism is not configurable**: The GA engine does not preserve the best individual across generations by default. A promising solution can be lost during crossover/mutation if no copy survives into the next generation. There is no `elitism_count` parameter.
+
+- **Mutation count is probabilistic, not guaranteed**: The number of mutated genes is drawn from a binomial distribution (`mutation_rate × len` expected). For short chromosomes (length < 20), the actual number of mutations often deviates significantly from the expected rate — sometimes zero mutations occur.
+
+- **No niching or speciation**: All individuals compete in a single panmictic population. Without fitness sharing or speciation, the population tends to converge prematurely on a single peak in multimodal fitness landscapes.
+
 ## Ecosystem
 
 Part of the **SuperInstance** ternary computing crate family:
